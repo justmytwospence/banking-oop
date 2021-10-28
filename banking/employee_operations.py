@@ -1,8 +1,10 @@
 import logging
 
 import click
+from sqlalchemy import and_, select, update
 
-from model import Account, Customer, Employee, Session
+from model import (Account, Checking, Credit, Customer, Employee, Loan, Saving,
+                   Session)
 
 # logging
 # INFO and above to file
@@ -20,36 +22,44 @@ stream_handler.setLevel(logging.WARNING)
 logger.addHandler(stream_handler)
 
 
-@click.command()
+@click.group(help="Employee operations")
+def employee():
+    pass
+
+
+@employee.command()
 @click.option("--name", prompt="Employee name",
               help="The name of the customer to add")
 @click.option("--address", prompt="Employee address",
               help="The address of the employee")
 @click.option("--salary", prompt="Employee salary",
               help="The salary of the employee")
-@click.option("--manager-id", default="",
-              prompt="Manager id",
+@click.option("--manager", default="",
+              prompt="Manager",
               help="The id of the employees manager")
-@click.option("--is_active", default=True,
-              prompt="Is the employee active (True/False)",
-              help="Whether the employee is active.")
-def hire(**kwargs):
+@click.option("--is_active", is_flag=True, default=True,
+              prompt="Is the employee active?")
+def hire(name, address, salary, manager, is_active):
     """Add an employee to the bank."""
+    firstname, lastname = manager.split(" ")
     with Session() as session:
-        if kwargs["manager_id"] == "":
-            kwargs["manager_id"] = None
-        new_employee = Employee(**kwargs)
+        stmt = select(Employee).where(and_(
+            Employee.firstname == firstname,
+            Employee.lastname == lastname))
+        manager = session.execute(stmt).scalar_one()
+        new_employee = Employee(name, address, salary, manager.id, is_active)
         logger.info(f"Adding new employee {new_employee} to session")
         session.add(new_employee)
         logger.info("Committing new employee...")
         session.commit()
 
 
-@click.command()
+@employee.command()
 @click.option("--name",
               prompt="Employee name",
               help="The name of the employee")
 def get_salary(name):
+    """Get the salary of an employee by employee name."""
     logger.info(f"Getting salary of employee {name}")
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
@@ -62,7 +72,7 @@ def get_salary(name):
     click.echo(f"{name}'s salary is ${result.salary:0,.2f}")
 
 
-@click.command()
+@employee.command()
 @click.option("--name",
               prompt="Employee name",
               help="The name of the employee")
@@ -70,6 +80,7 @@ def get_salary(name):
               prompt="New salary",
               help="The new salary of the employee")
 def change_salary(name, new_salary):
+    """Change the salary of an employee"""
     logger.info(f"Changing salary of employee {name}")
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
@@ -83,11 +94,12 @@ def change_salary(name, new_salary):
         session.commit()
 
 
-@click.command()
+@employee.command()
 @click.option("--name",
               prompt="Employee name",
               help="The name of the employee to terminate")
 def terminate(name):
+    """Terminate an employee"""
     logger.info(f"Terminating employee {name}")
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
@@ -100,11 +112,12 @@ def terminate(name):
         session.commit()
 
 
-@click.command()
+@employee.command()
 @click.option("--name",
               prompt="Manager name",
               help="The name of the manager of which to get reports")
 def get_manager_reports(name):
+    """Get the employees that report to a manager."""
     logger.info(f"Getting reports for {name}")
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
@@ -114,16 +127,4 @@ def get_manager_reports(name):
     ))
     with Session() as session:
         manager = session.execute(stmt).scalar_one()
-        click.echo(f"{name}'s reports are {Employee.reports}")
-
-
-@click.group(help="Employee operations")
-def employee():
-    pass
-
-
-employee.add_command(change_salary)
-employee.add_command(get_manager_reports)
-employee.add_command(get_salary)
-employee.add_command(hire)
-employee.add_command(terminate)
+        click.echo(f"{name}'s reports are {manager.reports}")

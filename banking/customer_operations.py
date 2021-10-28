@@ -20,7 +20,11 @@ stream_handler.setLevel(logging.WARNING)
 logger.addHandler(stream_handler)
 
 
-@click.command()
+@click.group(help="Customer operations")
+def customer():
+    pass
+
+@customer.command()
 @click.option("--name", prompt="Customer name",
               help="The name of the customer to add")
 @click.option("--address", prompt="Customer address",
@@ -34,10 +38,3 @@ def add_customer(**kwargs):
         logger.info("Committing new customer...")
         session.commit()
 
-
-@click.group(help="Customer operations")
-def customer():
-    pass
-
-
-customer.add_command(add_customer)
