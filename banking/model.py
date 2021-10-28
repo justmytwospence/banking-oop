@@ -2,9 +2,9 @@ import logging
 from datetime import datetime
 
 from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
-                        String, Table, create_engine, select, update)
+                        String, Table, create_engine)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import backref, relationship, sessionmaker
 
 # logging
 logger = logging.getLogger(__name__)
@@ -51,8 +51,8 @@ class Customer(Base):
     lastname = Column(String)
     address = Column(String)
 
-    # relationships
-    account = relationship("Account", secondary=account_customer)
+    # # relationships
+    # account = relationship("Account", secondary=account_customer)
 
     def __init__(self, name, address):
         names = name.split(" ")
@@ -75,7 +75,11 @@ class Employee(Base):
     salary = Column(Integer)
     is_active = Column(Boolean, default=True)
 
-    def __init__(self, name, address, salary, manager=None, is_active=True):
+    manager = relationship("Employee",
+                           backref=backref('reports'),
+                           remote_side=[id])
+
+    def __init__(self, name, address, salary, manager_id=None, is_active=True):
         names = name.split(" ")
         if len(names) == 2:
             self.firstname, self.lastname = names[0], names[1]
@@ -83,14 +87,13 @@ class Employee(Base):
             raise Exception("Only single first and last name supported")
         self.address = address
         self.salary = salary
-        self.manager = manager
-        self.is_active = True
+        self.manager_id = manager_id
+        self.is_active = is_active
 
     def __repr__(self):
         return f"Employee(firstname={self.firstname}, lastname={self.lastname})"
 
 
-logger.info("Creating tables from classes")
-engine = create_engine("sqlite:///bank.db")
-Base.metadata.create_all(engine)
+engine = create_engine(f"postgresql+psycopg2://postgres@localhost:5432/bank")
 Session = sessionmaker(engine)
+Base.metadata.create_all(engine)

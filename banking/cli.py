@@ -6,6 +6,8 @@ from sqlalchemy import and_, select, update
 from model import Account, Customer, Employee, Session
 
 # logging
+# INFO and above to file
+# WARNING and above to console
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 file_handler = logging.FileHandler("logs/bank.log")
@@ -17,7 +19,6 @@ logger.addHandler(file_handler)
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)
 logger.addHandler(stream_handler)
-
 
 @click.command()
 @click.option("--name", prompt="Customer name",
@@ -41,7 +42,8 @@ def add_customer(**kwargs):
               help="The address of the employee")
 @click.option("--salary", prompt="Employee salary",
               help="The salary of the employee")
-@click.option("--manager", prompt="Manager id",
+@click.option("--manager-id", default="",
+              prompt="Manager id",
               help="The id of the employees manager")
 @click.option("--is_active", default=True,
               prompt="Is the employee active (True/False)",
@@ -49,6 +51,8 @@ def add_customer(**kwargs):
 def add_employee(**kwargs):
     """Add an employee to the bank."""
     with Session() as session:
+        if kwargs["manager_id"] == "":
+            kwargs["manager_id"] = None
         new_employee = Employee(**kwargs)
         logger.info(f"Adding new employee {new_employee} to session")
         session.add(new_employee)
@@ -64,7 +68,9 @@ def get_employee_salary(name):
     logger.info(f"Getting salary of employee {name}")
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
-    stmt = select(Employee).where(Employee.firstname == firstname)
+    stmt = select(Employee).where(and_(
+        Employee.firstname == firstname,
+        Employee.lastname == lastname))
     logger.info(f"Executing statement: {stmt}")
     with Session() as session:
         result = session.execute(stmt).scalar_one()
@@ -82,7 +88,9 @@ def change_employee_salary(name, new_salary):
     logger.info(f"Changing salary of employee {name}")
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
-    stmt = update(Employee).where(Employee.firstname == firstname)
+    stmt = update(Employee).where(and_(
+        Employee.firstname == firstname,
+        Employee.lastname == lastname))
     stmt = stmt.values(salary=new_salary)
     logger.info(f"Executing statement: {stmt}")
     with Session() as session:
@@ -107,7 +115,7 @@ def terminate_employee(name):
         session.commit()
 
 
-@click.group(help="CLI tool to manage manage your bank")
+@click.group(help="CLI tool to manage your bank")
 def cli():
     pass
 
