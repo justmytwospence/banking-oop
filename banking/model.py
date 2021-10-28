@@ -1,8 +1,10 @@
 import logging
+import uuid
 from datetime import datetime
 
 from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
                         String, Table, create_engine)
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship, sessionmaker
 
@@ -21,20 +23,21 @@ logger.addHandler(stream_handler)
 
 Base = declarative_base()
 
-# Many to many relationship between Account and Customer
-account_customer = Table("account_customer", Base.metadata,
-                         Column("account_id", Integer(),
-                                ForeignKey("Account.id")),
-                         Column('customer_id',
-                                Integer(), ForeignKey("Customer.id")))
+# # Many to many relationship between Account and Customer
+# account_customer = Table("account_customer", Base.metadata,
+#                          Column("account_id", Integer(),
+#                                 ForeignKey("Account.id")),
+#                          Column('customer_id',
+#                                 Integer(), ForeignKey("Customer.id")))
 
 
 class Account(Base):
     __tablename__ = "Account"
 
     # fields
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    customer_id = Column(Integer, ForeignKey("Customer.id"))
+    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("Customer.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
     balance = Column(Float, default=0)
 
     def __init__(self, customer_ids):
@@ -45,8 +48,9 @@ class Customer(Base):
     __tablename__ = "Customer"
 
     # fields
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    account_id = Column(Integer, ForeignKey("Account.id"))
+    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
     firstname = Column(String)
     lastname = Column(String)
     address = Column(String)
@@ -66,8 +70,8 @@ class Customer(Base):
 class Employee(Base):
     __tablename__ = "Employee"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    manager_id = Column(Integer, ForeignKey("Employee.id"), nullable=True)
+    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+    manager_id = Column(UUID(as_uuid=True), ForeignKey("Employee.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     firstname = Column(String)
     lastname = Column(String)
