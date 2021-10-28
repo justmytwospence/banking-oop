@@ -1,5 +1,22 @@
 A mock banking app.
 
+## TODO
+
+- [ ] Data model
+- [ ] Organize
+- [ ] Functionality
+- [ ] Documentation
+- [ ] Logging
+- [ ] Testing
+
+## Technologies
+
+- [Python 3](https://www.python.org/)
+- [SQLite](https://sqlite.org/index.html) for data persistence
+- [Click](https://click.palletsprojects.com/en/8.0.x/) for the command line interface
+- [SQLAlchemy](https://www.sqlalchemy.org/) for object-relational mapping
+- [pytest](https://docs.pytest.org/en/6.2.x/) for testing
+
 ## Data model
 
 ### Customer
@@ -29,22 +46,22 @@ A mock banking app.
 
 ### Checking
 
-| field    | type |
-|----------|------|
-| id       | id   |
-| account  | id   |
+| field   | type |
+|---------|------|
+| id      | id   |
+| account | id   |
 
 ### Saving
 
-| field    | type |
-|----------|------|
-| id       | id   |
-| account  | id   |
+| field   | type |
+|---------|------|
+| id      | id   |
+| account | id   |
 
 ### Loan
 
-| field    | type  |
-|----------|-------|
-| id       | id    |
-| account  | id    |
-| balance  | float |
+| field   | type  |
+|---------|-------|
+| id      | id    |
+| account | id    |
+| balance | float |
