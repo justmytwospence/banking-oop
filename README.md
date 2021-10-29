@@ -3,16 +3,16 @@ A mock banking app.
 ## TODO
 
 - [ ] Data model
-- [ ] Organize
 - [ ] Functionality
-- [ ] Documentation
+- [ ] Organize
 - [ ] Logging
+- [ ] Documentation
 - [ ] Testing
 
 ## Technologies
 
 - [Python 3](https://www.python.org/)
-- [SQLite](https://sqlite.org/index.html) for data persistence
+- [PostgreSQL](https://www.postgresql.org/) for data persistence
 - [Click](https://click.palletsprojects.com/en/8.0.x/) for the command line interface
 - [SQLAlchemy](https://www.sqlalchemy.org/) for object-relational mapping
 - [pytest](https://docs.pytest.org/en/6.2.x/) for testing
