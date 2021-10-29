@@ -2,7 +2,7 @@ import logging
 
 import click
 
-from model import Customer, Session
+from models import Customer, Session
 
 # logging
 # INFO and above to file

@@ -40,6 +40,7 @@ class Account(Base):
     def __repr__(self):
         return f"Account(id={self.id})"
 
+
 class Customer(Base):
     __tablename__ = "Customer"
 

@@ -3,7 +3,7 @@ import logging
 import click
 from sqlalchemy import and_, select, update
 
-from model import Account, Customer, Session
+from models import Account, Customer, Session
 
 # logging
 # INFO and above to file
@@ -82,4 +82,4 @@ def get_customers(uuid):
     with Session() as session:
         stmt = select(Account).where(Account.id == uuid)
         account = session.execute(stmt).scalar_one()
-        logger.warning(account.customers)
+        click.echo([customer.firstname for customer in account.customers])
