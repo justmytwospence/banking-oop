@@ -2,14 +2,17 @@ import logging
 
 import click
 
+from account_operations import account
 from customer_operations import customer
 from employee_operations import employee
+
 
 @click.group(help="CLI tool to manage your bank")
 def cli():
     pass
 
 
+cli.add_command(account)
 cli.add_command(customer)
 cli.add_command(employee)
 

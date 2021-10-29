@@ -3,8 +3,7 @@ import logging
 import click
 from sqlalchemy import and_, select, update
 
-from model import (Account, Checking, Credit, Customer, Employee, Loan, Saving,
-                   Session)
+from model import Customer, Session
 
 # logging
 # INFO and above to file

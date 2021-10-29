@@ -23,40 +23,37 @@ logger.addHandler(stream_handler)
 
 Base = declarative_base()
 
-# # Many to many relationship between Account and Customer
-# account_customer = Table("account_customer", Base.metadata,
-#                          Column("account_id", Integer(),
-#                                 ForeignKey("Account.id")),
-#                          Column('customer_id',
-#                                 Integer(), ForeignKey("Customer.id")))
-
 
 class Account(Base):
     __tablename__ = "Account"
 
     # fields
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
-    customer_id = Column(UUID(as_uuid=True), ForeignKey("Customer.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     balance = Column(Float, default=0)
 
-    def __init__(self, customer_ids):
-        pass
+    # relationships
+    customer = relationship("Customer",
+                            secondary="AccountCustomer",
+                            back_populates="account")
 
+    def __repr__(self):
+        return f"Account(id={self.id})"
 
 class Customer(Base):
     __tablename__ = "Customer"
 
     # fields
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
-    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     firstname = Column(String)
     lastname = Column(String)
     address = Column(String)
 
-    # # relationships
-    # account = relationship("Account", secondary=account_customer)
+    # relationships
+    account = relationship("Account",
+                           secondary="AccountCustomer",
+                           back_populates="customer")
 
     def __init__(self, name, address):
         names = name.split(" ")
@@ -67,11 +64,65 @@ class Customer(Base):
         self.address = address
 
 
+class AccountCustomer(Base):
+    __tablename__ = "AccountCustomer"
+
+    # fields
+    account_id = Column(UUID(as_uuid=True),
+                        ForeignKey("Account.id"),
+                        primary_key=True)
+    customer_id = Column(UUID(as_uuid=True),
+                         ForeignKey("Customer.id"),
+                         primary_key=True)
+
+
+class Checking(Base):
+    __tablename__ = "Checking"
+
+    # fields
+    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    balance = Column(Float, default=0)
+
+
+class Saving(Base):
+    __tablename__ = "Saving"
+
+    # fields
+    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    balance = Column(Float, default=0)
+
+
+class Loan(Base):
+    __tablename__ = "Loan"
+
+    # fields
+    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    balance = Column(Float, default=0)
+
+
+class Credit(Base):
+    __tablename__ = "Credit"
+
+    # fields
+    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    balance = Column(Float, default=0)
+
+
 class Employee(Base):
     __tablename__ = "Employee"
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
-    manager_id = Column(UUID(as_uuid=True), ForeignKey("Employee.id"), nullable=True)
+    manager_id = Column(UUID(as_uuid=True),
+                        ForeignKey("Employee.id"),
+                        nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     firstname = Column(String)
     lastname = Column(String)

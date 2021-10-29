@@ -2,7 +2,7 @@ import logging
 
 import click
 
-from model import Account, Customer, Employee, Session
+from model import Customer, Session
 
 # logging
 # INFO and above to file
@@ -24,17 +24,17 @@ logger.addHandler(stream_handler)
 def customer():
     pass
 
+
 @customer.command()
 @click.option("--name", prompt="Customer name",
               help="The name of the customer to add")
 @click.option("--address", prompt="Customer address",
               help="The address of the customer to add")
-def add_customer(**kwargs):
+def onboard(name, address):
     """Add a customer."""
-    new_customer = Customer(**kwargs)
+    new_customer = Customer(name, address)
     logger.info(f"Adding new customer {new_customer}")
     with Session() as session:
         session.add(new_customer)
         logger.info("Committing new customer...")
         session.commit()
-
