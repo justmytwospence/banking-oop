@@ -33,9 +33,9 @@ class Account(Base):
     balance = Column(Float, default=0)
 
     # relationships
-    customer = relationship("Customer",
-                            secondary="AccountCustomer",
-                            back_populates="account")
+    customers = relationship("Customer",
+                             secondary="AccountCustomer",
+                             back_populates="accounts")
 
     def __repr__(self):
         return f"Account(id={self.id})"
@@ -51,9 +51,9 @@ class Customer(Base):
     address = Column(String)
 
     # relationships
-    account = relationship("Account",
-                           secondary="AccountCustomer",
-                           back_populates="customer")
+    accounts = relationship("Account",
+                            secondary="AccountCustomer",
+                            back_populates="customers")
 
     def __init__(self, name, address):
         names = name.split(" ")
