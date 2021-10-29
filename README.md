@@ -19,49 +19,10 @@ A mock banking app.
 
 ## Data model
 
-### Customer
+`Employee.manager_id` is a self-referential foreign key to `Employee.id`, to
+model the relationship between managers and reports.
 
-| field      | type    |
-|------------|---------|
-| id         | id      |
-| first name | varchar |
-| last name  | varchar |
-| address    | varchar |
+Because customers and accounts have a many to many relationship, they are
+modeled with a join table `AccountCustomer`.
 
-### Account
-
-| field | type |
-|-------|------|
-| id    | id   |
-
-### Employee
-
-| field      | type    |
-|------------|---------|
-| id         | id      |
-| first name | varchar |
-| last name  | varchar |
-| salary     | float   |
-| manager    | id      |
-
-### Checking
-
-| field   | type |
-|---------|------|
-| id      | id   |
-| account | id   |
-
-### Saving
-
-| field   | type |
-|---------|------|
-| id      | id   |
-| account | id   |
-
-### Loan
-
-| field   | type  |
-|---------|-------|
-| id      | id    |
-| account | id    |
-| balance | float |
+![ERD](images/erd.png)
