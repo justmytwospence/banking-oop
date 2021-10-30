@@ -6,7 +6,7 @@ from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
                         String, Table, create_engine)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, relationship, sessionmaker
+from sqlalchemy.orm import backref, declared_attr, relationship, sessionmaker
 
 from logging_utils import get_logger
 
@@ -68,44 +68,39 @@ class AccountCustomer(Base):
                          primary_key=True)
 
 
-class Checking(Base):
+class CreditCard(Service):
+    __tablename__ = "CreditCard"
+    interest_rate = Column(Float)
+    credit_limit = Column(Float)
+
+
+class Service(Base):
+    """Parent class for banking services."""
+    __abstract__ = True
+
+    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    balance = Column(Float, default=0)
+
+    @declared_attr
+    def account_id(self):
+        return Column(UUID(as_uuid=True), ForeignKey("Account.id"))
+
+
+class Checking(Service):
     __tablename__ = "Checking"
 
-    # fields
-    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
-    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    balance = Column(Float, default=0)
 
-
-class Saving(Base):
+class Saving(Service):
     __tablename__ = "Saving"
 
-    # fields
-    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
-    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    balance = Column(Float, default=0)
+    interest_rate = Column(Float)
 
 
-class Loan(Base):
+class Loan(Service):
     __tablename__ = "Loan"
 
-    # fields
-    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
-    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    balance = Column(Float, default=0)
-
-
-class Credit(Base):
-    __tablename__ = "Credit"
-
-    # fields
-    id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
-    account_id = Column(UUID(as_uuid=True), ForeignKey("Account.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    balance = Column(Float, default=0)
+    interest_rate = Column(Float)
 
 
 class Employee(Base):
