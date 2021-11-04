@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
-                        String, create_engine)
+                        String, UniqueConstraint, create_engine)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, declared_attr, relationship, sessionmaker
@@ -44,6 +44,10 @@ class Customer(Base):
     accounts = relationship("Account",
                             secondary="AccountCustomer",
                             back_populates="customers")
+
+    # constraints
+    __table_args__ = (UniqueConstraint(
+        firstname, lastname, name='customer_name_uc'),)
 
     def __init__(self, name, address):
         names = name.split(" ")
@@ -101,6 +105,7 @@ class Loan(Service):
 class Employee(Base):
     __tablename__ = "Employee"
 
+    # fields
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
     manager_id = Column(UUID(as_uuid=True),
                         ForeignKey("Employee.id"),
@@ -112,9 +117,14 @@ class Employee(Base):
     salary = Column(Integer)
     is_active = Column(Boolean, default=True)
 
+    # relationships
     manager = relationship("Employee",
                            backref=backref('reports'),
                            remote_side=[id])
+
+    # constraints
+    __table_args__ = (UniqueConstraint(
+        firstname, lastname, name='employee_name_uc'),)
 
     def __init__(self, name, address, salary, manager_id=None, is_active=True):
         names = name.split(" ")
