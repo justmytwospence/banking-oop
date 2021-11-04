@@ -3,14 +3,12 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
-                        String, Table, create_engine)
+                        String, create_engine)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, declared_attr, relationship, sessionmaker
 
-from logging_utils import get_logger
-
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -55,6 +53,9 @@ class Customer(Base):
             raise Exception("Only first and last name supported")
         self.address = address
 
+    def __repr__(self):
+        return f"Customer(firstname={self.firstname}, lastname={self.lastname})"
+
 
 class AccountCustomer(Base):
     __tablename__ = "AccountCustomer"
@@ -66,12 +67,6 @@ class AccountCustomer(Base):
     customer_id = Column(UUID(as_uuid=True),
                          ForeignKey("Customer.id"),
                          primary_key=True)
-
-
-class CreditCard(Service):
-    __tablename__ = "CreditCard"
-    interest_rate = Column(Float)
-    credit_limit = Column(Float)
 
 
 class Service(Base):

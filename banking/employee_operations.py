@@ -3,11 +3,9 @@ import logging
 import click
 from sqlalchemy import and_, select, update
 
-from models import Employee, Session
-from logging_utils import get_logger
+from banking.models import Employee, Session
 
-logger = get_logger()
-
+logger = logging.getLogger(__name__)
 
 @click.group(help="Employee operations")
 def employee():
@@ -28,17 +26,24 @@ def employee():
               prompt="Is the employee active?")
 def hire(name, address, salary, manager, is_active):
     """Add an employee to the bank."""
-    firstname, lastname = manager.split(" ")
+
+    if manager:
+        with Session() as session:
+            firstname, lastname = manager.split(" ")
+            stmt = select(Employee).where(and_(
+                Employee.firstname == firstname,
+                Employee.lastname == lastname))
+            logger.debug(f"Executing statement: {stmt}")
+            manager = session.execute(stmt).scalar_one()
+    manager_id = manager.id if manager else None
+    logger.info(f"New hire's manager_id is {manager_id}")
+
     with Session() as session:
-        stmt = select(Employee).where(and_(
-            Employee.firstname == firstname,
-            Employee.lastname == lastname))
-        manager = session.execute(stmt).scalar_one()
-        new_employee = Employee(name, address, salary, manager.id, is_active)
-        logger.info(f"Adding new employee {new_employee} to session")
+        new_employee = Employee(name, address, salary, manager_id, is_active)
+        logger.debug(f"Adding new employee {new_employee}")
         session.add(new_employee)
-        logger.info("Committing new employee...")
         session.commit()
+        logger.info(f"New hire's id is {new_employee.id}")
 
 
 @employee.command()
@@ -47,15 +52,17 @@ def hire(name, address, salary, manager, is_active):
               help="The name of the employee")
 def get_salary(name):
     """Get the salary of an employee by employee name."""
-    logger.info(f"Getting salary of employee {name}")
+
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
     stmt = select(Employee).where(and_(
         Employee.firstname == firstname,
         Employee.lastname == lastname))
-    logger.info(f"Executing statement: {stmt}")
+
+    logger.debug(f"Executing statement: {stmt}")
     with Session() as session:
         result = session.execute(stmt).scalar_one()
+    logger.info(f"{name}'s employee_id is {result.id}")
     click.echo(f"{name}'s salary is ${result.salary:0,.2f}")
 
 
@@ -68,17 +75,19 @@ def get_salary(name):
               help="The new salary of the employee")
 def change_salary(name, new_salary):
     """Change the salary of an employee"""
-    logger.info(f"Changing salary of employee {name}")
+
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
     stmt = update(Employee).where(and_(
         Employee.firstname == firstname,
         Employee.lastname == lastname))
     stmt = stmt.values(salary=new_salary)
-    logger.info(f"Executing statement: {stmt}")
+
+    logger.debug(f"Executing statement: {stmt}")
     with Session() as session:
         session.execute(stmt)
         session.commit()
+    logger.info(f"Changed {name}'s salary to ${int(new_salary):0,.2f}")
 
 
 @employee.command()
@@ -87,13 +96,14 @@ def change_salary(name, new_salary):
               help="The name of the employee to terminate")
 def terminate(name):
     """Terminate an employee"""
-    logger.info(f"Terminating employee {name}")
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
     stmt = update(Employee).where(and_(
         Employee.firstname == firstname,
         Employee.lastname == lastname))
     stmt = stmt.values(is_active=False)
+
+    logger.debug(f"Executing statement: {stmt}")
     with Session() as session:
         session.execute(stmt)
         session.commit()
@@ -105,7 +115,7 @@ def terminate(name):
               help="The name of the manager of which to get reports")
 def get_manager_reports(name):
     """Get the employees that report to a manager."""
-    logger.info(f"Getting reports for {name}")
+
     names = name.split(" ")
     firstname, lastname = names[0], names[1]
     stmt = select(Employee).where(and_(
@@ -113,5 +123,8 @@ def get_manager_reports(name):
         Employee.lastname == lastname
     ))
     with Session() as session:
+        logger.debug(f"Executing statement: {stmt}")
         manager = session.execute(stmt).scalar_one()
+        logger.info(f"{name}'s id is {manager.id}")
         click.echo(f"{name}'s reports are {manager.reports}")
+        logger.info(f"The ids of {name}'s reports are {[report.id for report in manager.reports]}")

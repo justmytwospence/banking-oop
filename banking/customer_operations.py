@@ -2,10 +2,9 @@ import logging
 
 import click
 
-from logging_utils import get_logger
-from models import Customer, Session
+from banking.models import Customer, Session
 
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 @click.group(help="Customer operations")
@@ -20,9 +19,10 @@ def customer():
               help="The address of the customer to add")
 def onboard(name, address):
     """Add a customer."""
+
     new_customer = Customer(name, address)
     logger.info(f"Adding new customer {new_customer}")
     with Session() as session:
         session.add(new_customer)
-        logger.info("Committing new customer...")
         session.commit()
+        logger.info(f"New customer id is {new_customer.id}")
