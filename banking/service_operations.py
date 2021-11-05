@@ -19,6 +19,7 @@ def checking():
 def open(name):
     """Open checking account for customer"""
 
+    # get account
     with Session() as session:
         firstname, lastname = name.split(" ")
         stmt = select(Account).join(Account.customers)
@@ -33,6 +34,7 @@ def open(name):
         account_id = inquirer.prompt(accounts)['Account']
         logger.info(f"Using account_id {account_id}")
 
+    # create checking
     with Session() as session:
         new_checking = Checking(account_id=account_id)
         session.add(new_checking)

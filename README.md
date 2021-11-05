@@ -23,6 +23,6 @@ A mock banking app.
 model the relationship between managers and reports.
 
 Because customers and accounts have a many to many relationship, they are
-modeled with a join table `AccountCustomer`.
+modeled with a junction table `AccountCustomer`.
 
 ![ERD](images/erd.png)
