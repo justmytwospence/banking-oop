@@ -1,13 +1,17 @@
-A mock banking app.
+A mock banking app. To use, run the package directly `python -m banking` or
+install via pip and use the `banking` executable. There are four commands:
+`account`, `service`, `customer`, and `employee`, for operating on various parts
+of the business. Running a command without arguments will present you with a
+help menu including available subcommands (`python -m banking employee`).
 
 ## TODO
 
-- [ ] Data model
-- [ ] Functionality
-- [ ] Organize
-- [ ] Logging
-- [ ] Documentation
-- [ ] Testing
+- [X] Data model
+- [X] Functionality
+- [X] Organize
+- [X] Logging
+- [X] Documentation
+- [X] Testing
 
 ## Technologies
 
