@@ -1,7 +1,7 @@
 import logging
 
 import click
-from sqlalchemy import update, and_
+from sqlalchemy import and_, exc, update
 
 from banking.models import Customer, Session
 
@@ -21,12 +21,16 @@ def customer():
 def onboard(name, address, Session=Session):
     """Add a customer."""
 
-    with Session() as session:
-        new_customer = Customer(name, address)
-        logger.info(f"Adding new customer {new_customer}")
-        session.add(new_customer)
-        session.commit()
-        logger.info(f"New customer id is {new_customer.id}")
+    try:
+        with Session() as session:
+            new_customer = Customer(name, address)
+            logger.info(f"Adding new customer {new_customer}")
+            session.add(new_customer)
+            session.commit()
+            logger.info(f"New customer id is {new_customer.id}")
+            return new_customer
+    except Exception as e:
+        logger.warn(f"Failed to create new customer {name}: {e}")
 
 
 @customer.command()
@@ -34,17 +38,19 @@ def onboard(name, address, Session=Session):
               help="The name of the customer to add")
 @click.option("--address", prompt="Customer address",
               help="The address of the customer to add")
-def change_address(name, address, Session):
+def change_address(name, address, Session=Session):
     """Change a customer's address"""
 
-    with Session() as session:
-        firstname, lastname = name.split(" ")
-        stmt = (
-            update(Customer)
-            .where(and_(
-                Customer.firstname == firstname,
-                Customer.lastname == lastname))
-            .values(address=address))
-        logger.debug(f"Executing statement {stmt}")
-        session.execute(stmt)
-        session.commit()
+    try:
+        with Session() as session:
+            stmt = (
+                update(Customer)
+                .where(and_(
+                    Customer.firstname == firstname,
+                    Customer.lastname == lastname))
+                .values(address=address))
+            logger.debug(f"Executing statement {stmt}")
+            session.execute(stmt)
+            session.commit()
+    except exc.SQLAlchemyError as e:
+        logger.error(f"Failed to change address of {name}: {e}")

@@ -1,9 +1,10 @@
 import logging
 
 import click
-from sqlalchemy import and_, select, update
+from sqlalchemy import and_, exc, select, update
 
 from banking.models import Employee, Session
+from banking.utils import split_name
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +29,10 @@ def employee():
 def hire(name, address, salary, manager, is_active, Session=Session):
     """Add an employee to the bank."""
 
+    # get manager_id
     if manager:
+        firstname, lastname = split_name(manager)
         with Session() as session:
-            firstname, lastname = manager.split(" ")
             stmt = select(Employee).where(and_(
                 Employee.firstname == firstname,
                 Employee.lastname == lastname))
@@ -39,12 +41,16 @@ def hire(name, address, salary, manager, is_active, Session=Session):
     manager_id = manager.id if manager else None
     logger.info(f"New hire's manager_id is {manager_id}")
 
-    with Session() as session:
-        new_employee = Employee(name, address, salary, manager_id, is_active)
-        logger.debug(f"Adding new employee {new_employee}")
-        session.add(new_employee)
-        session.commit()
-        logger.info(f"New hire's id is {new_employee.id}")
+    try:
+        with Session() as session:
+            new_employee = Employee(
+                name, address, salary, manager_id, is_active)
+            logger.debug(f"Adding new employee {new_employee}")
+            session.add(new_employee)
+            session.commit()
+            logger.info(f"New hire's id is {new_employee.id}")
+    except exc.SQLAlchemyError as e:
+        logger.error(f"Failed to create new employee {name}: {e}")
 
     return new_employee
 
@@ -56,17 +62,18 @@ def hire(name, address, salary, manager, is_active, Session=Session):
 def get_salary(name):
     """Get the salary of an employee by employee name."""
 
-    names = name.split(" ")
-    firstname, lastname = names[0], names[1]
-    stmt = select(Employee).where(and_(
-        Employee.firstname == firstname,
-        Employee.lastname == lastname))
-
-    logger.debug(f"Executing statement: {stmt}")
-    with Session() as session:
-        result = session.execute(stmt).scalar_one()
-    logger.info(f"{name}'s employee_id is {result.id}")
-    click.echo(f"{name}'s salary is ${result.salary:0,.2f}")
+    firstname, lastname = split_name(name)
+    try:
+        with Session() as session:
+            stmt = select(Employee).where(and_(
+                Employee.firstname == firstname,
+                Employee.lastname == lastname))
+            logger.debug(f"Executing statement: {stmt}")
+            result = session.execute(stmt).scalar_one()
+        logger.info(f"{name}'s employee_id is {result.id}")
+        click.echo(f"{name}'s salary is ${result.salary:0,.2f}")
+    except exc.SQLAlchemyError as e:
+        logger.error(f"Failed to get employee {name}: {e}")
     return result.salary
 
 
@@ -80,18 +87,20 @@ def get_salary(name):
 def change_salary(name, new_salary):
     """Change the salary of an employee"""
 
-    names = name.split(" ")
-    firstname, lastname = names[0], names[1]
-    stmt = update(Employee).where(and_(
-        Employee.firstname == firstname,
-        Employee.lastname == lastname))
-    stmt = stmt.values(salary=new_salary)
+    firstname, lastname = split_name(name)
 
-    logger.debug(f"Executing statement: {stmt}")
-    with Session() as session:
-        session.execute(stmt)
-        session.commit()
-    logger.info(f"Changed {name}'s salary to ${int(new_salary):0,.2f}")
+    try:
+        with Session() as session:
+            stmt = update(Employee).where(and_(
+                Employee.firstname == firstname,
+                Employee.lastname == lastname))
+            stmt = stmt.values(salary=new_salary)
+            logger.debug(f"Executing statement: {stmt}")
+            session.execute(stmt)
+            session.commit()
+            logger.info(f"Changed {name}'s salary to ${int(new_salary):0,.2f}")
+    except exc.SQLAlchemyError as e:
+        logger.error(f"Failed to update salary for employee {name}: {e}")
 
 
 @employee.command()
@@ -100,17 +109,20 @@ def change_salary(name, new_salary):
               help="The name of the employee to terminate")
 def terminate(name):
     """Terminate an employee"""
-    names = name.split(" ")
-    firstname, lastname = names[0], names[1]
-    stmt = update(Employee).where(and_(
-        Employee.firstname == firstname,
-        Employee.lastname == lastname))
-    stmt = stmt.values(is_active=False)
 
-    logger.debug(f"Executing statement: {stmt}")
-    with Session() as session:
-        session.execute(stmt)
-        session.commit()
+    firstname, lastname = split_name(name)
+
+    try:
+        with Session() as session:
+            stmt = update(Employee).where(and_(
+                Employee.firstname == firstname,
+                Employee.lastname == lastname))
+            stmt = stmt.values(is_active=False)
+            logger.debug(f"Executing statement: {stmt}")
+            session.execute(stmt)
+            session.commit()
+    except exc.SQLAlchemyError as e:
+        logger.error(f"Failed to terminate employee {name}: {e}")
 
 
 @employee.command()
@@ -120,16 +132,18 @@ def terminate(name):
 def get_manager_reports(name):
     """Get the employees that report to a manager."""
 
-    names = name.split(" ")
-    firstname, lastname = names[0], names[1]
-    stmt = select(Employee).where(and_(
-        Employee.firstname == firstname,
-        Employee.lastname == lastname
-    ))
-    with Session() as session:
-        logger.debug(f"Executing statement: {stmt}")
-        manager = session.execute(stmt).scalar_one()
-        logger.info(f"{name}'s id is {manager.id}")
-        click.echo(f"{name}'s reports are {manager.reports}")
-        logger.info(
-            f"The ids of {name}'s reports are {[report.id for report in manager.reports]}")
+    firstname, lastname = split_name(name)
+
+    try:
+        with Session() as session:
+            stmt = select(Employee).where(and_(
+                Employee.firstname == firstname,
+                Employee.lastname == lastname))
+            logger.debug(f"Executing statement: {stmt}")
+            manager = session.execute(stmt).scalar_one()
+            logger.info(f"{name}'s id is {manager.id}")
+            click.echo(f"{name}'s reports are {manager.reports}")
+            logger.info(
+                f"The ids of {name}'s reports are {[report.id for report in manager.reports]}")
+    except exc.SQLAlchemyError as e:
+        logger.error(f"Failed to get manager {name}: {e}")
