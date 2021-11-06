@@ -10,7 +10,6 @@ def seed_employees(Session):
         {"name": "Hilary Boucher", "address": "Pond View Court", "salary": 100},
         {"name": "Greg Boucher", "address": "Pond view Court", "salary": 200},
         {"name": "Garrett Boucher", "address": "Nashville", "salary": 125},
-        {"name": "Grace Boucher", "address": "Nashville", "salary": 105},
     ]
     with Session() as session:
         for employee in employees:

@@ -7,6 +7,7 @@ from banking.models import Employee, Session
 
 logger = logging.getLogger(__name__)
 
+
 @click.group(help="Employee operations")
 def employee():
     pass
@@ -24,7 +25,7 @@ def employee():
               help="The id of the employees manager")
 @click.option("--is_active", is_flag=True, default=True,
               prompt="Is the employee active?")
-def hire(name, address, salary, manager, is_active):
+def hire(name, address, salary, manager, is_active, Session=Session):
     """Add an employee to the bank."""
 
     if manager:
@@ -45,6 +46,8 @@ def hire(name, address, salary, manager, is_active):
         session.commit()
         logger.info(f"New hire's id is {new_employee.id}")
 
+    return new_employee
+
 
 @employee.command()
 @click.option("--name",
@@ -64,6 +67,7 @@ def get_salary(name):
         result = session.execute(stmt).scalar_one()
     logger.info(f"{name}'s employee_id is {result.id}")
     click.echo(f"{name}'s salary is ${result.salary:0,.2f}")
+    return result.salary
 
 
 @employee.command()
@@ -127,4 +131,5 @@ def get_manager_reports(name):
         manager = session.execute(stmt).scalar_one()
         logger.info(f"{name}'s id is {manager.id}")
         click.echo(f"{name}'s reports are {manager.reports}")
-        logger.info(f"The ids of {name}'s reports are {[report.id for report in manager.reports]}")
+        logger.info(
+            f"The ids of {name}'s reports are {[report.id for report in manager.reports]}")
