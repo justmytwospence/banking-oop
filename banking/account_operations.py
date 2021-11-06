@@ -19,7 +19,7 @@ def account():
 @click.option("--name",
               prompt="Customer name",
               help="The name of the customer for which to open an account")
-def open(name):
+def open(name, Session=Session):
     """Open a new account for a customer."""
 
     firstname, lastname = split_name(name)
@@ -43,11 +43,13 @@ def open(name):
         new_account.customers.append(customer)
         session.commit()
 
+        return new_account.id
+
 
 @account.command()
 @click.option("--existing-account-customer", prompt="Name of current account holder")
 @click.option("--new-account-customer", prompt="Name of new account holder")
-def add(existing_account_customer, new_account_customer):
+def add(existing_account_customer, new_account_customer, Session):
     """Add a second customer to the account of an existing customer."""
 
     with Session() as session:
@@ -61,9 +63,12 @@ def add(existing_account_customer, new_account_customer):
         if len(accounts) < 1:
             raise Exception(
                 f"Customer {existing_account_customer} has no existing accounts.")
-        accounts = [inquirer.List('Account', message="Which account to use?",
-                                  choices=[account[0] for account in accounts])]
-        account = inquirer.prompt(accounts)['Account']
+        elif len(accounts) == 1:
+            account = accounts[0][0]
+        else:
+            accounts = [inquirer.List('Account', message="Which account to use?",
+                                      choices=[account[0] for account in accounts])]
+            account = inquirer.prompt(accounts)['Account']
 
         # get customer
         try:
@@ -81,12 +86,14 @@ def add(existing_account_customer, new_account_customer):
         account.customers.append(new_account_customer)
         session.commit()
 
+        return account.id
+
 
 @account.command()
 @click.option("--uuid",
               prompt="Accout UUID",
               help="The UUID of the account for which to get customers")
-def get_customers(uuid):
+def get_customers(uuid, Session=Session):
     """Get the customers on an account."""
 
     with Session() as session:

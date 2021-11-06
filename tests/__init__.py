@@ -6,10 +6,10 @@ from sqlalchemy.orm import sessionmaker
 
 def seed_employees(Session):
     employees = [
-        {"name": "Spencer Boucher", "address": "Nottingham Court", "salary": 150},
-        {"name": "Hilary Boucher", "address": "Pond View Court", "salary": 100},
-        {"name": "Greg Boucher", "address": "Pond view Court", "salary": 200},
-        {"name": "Garrett Boucher", "address": "Nashville", "salary": 125},
+        {"name": "Spencer Foobar", "address": "USA", "salary": 150},
+        {"name": "Hilary Foobar", "address": "USA", "salary": 100},
+        {"name": "Greg Foobar", "address": "USA", "salary": 200},
+        {"name": "Garrett Foobar", "address": "USA", "salary": 125},
     ]
     with Session() as session:
         for employee in employees:
@@ -19,10 +19,10 @@ def seed_employees(Session):
 
 def seed_customer_accounts(Session):
     customers = [
-        {"name": "Spencer Boucher", "address": "Nottingham Court"},
-        {"name": "Hilary Boucher", "address": "Pond View Court"},
-        {"name": "Garrett Boucher", "address": "Nashville"},
-        {"name": "Grace Boucher", "address": "Nashville"},
+        {"name": "Spencer Foobar", "address": "USA"},
+        {"name": "Hilary Foobar", "address": "USA"},
+        {"name": "Garrett Foobar", "address": "USA"},
+        {"name": "Grace Foobar", "address": "USA"},
     ]
     for customer in customers:
         with Session() as session:

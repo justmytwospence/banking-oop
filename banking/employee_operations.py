@@ -59,7 +59,7 @@ def hire(name, address, salary, manager, is_active, Session=Session):
 @click.option("--name",
               prompt="Employee name",
               help="The name of the employee")
-def get_salary(name):
+def get_salary(name, Session=Session):
     """Get the salary of an employee by employee name."""
 
     firstname, lastname = split_name(name)
@@ -107,7 +107,7 @@ def change_salary(name, new_salary):
 @click.option("--name",
               prompt="Employee name",
               help="The name of the employee to terminate")
-def terminate(name):
+def terminate(name, Session=Session):
     """Terminate an employee"""
 
     firstname, lastname = split_name(name)

@@ -4,6 +4,7 @@ import click
 from sqlalchemy import and_, exc, update
 
 from banking.models import Customer, Session
+from banking.utils import split_name
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,8 @@ def customer():
 def onboard(name, address, Session=Session):
     """Add a customer."""
 
+    firstname, lastname = split_name(name)
+
     try:
         with Session() as session:
             new_customer = Customer(name, address)
@@ -29,7 +32,7 @@ def onboard(name, address, Session=Session):
             session.commit()
             logger.info(f"New customer id is {new_customer.id}")
             return new_customer
-    except Exception as e:
+    except exc.SQLAlchemyError as e:
         logger.warn(f"Failed to create new customer {name}: {e}")
 
 
@@ -40,6 +43,8 @@ def onboard(name, address, Session=Session):
               help="The address of the customer to add")
 def change_address(name, address, Session=Session):
     """Change a customer's address"""
+
+    firstname, lastname = split_name(name)
 
     try:
         with Session() as session:
